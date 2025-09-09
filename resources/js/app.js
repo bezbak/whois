@@ -10,5 +10,5 @@ if (document.getElementById('login-app')) {
   createApp(Login).mount('#login-app')
 }
 if (document.getElementById('domain-app')) {
-  createApp(DomainChecker).mount('#domain-app')
+  createApp(DomainChecker).mount('#domain-app') 
 }

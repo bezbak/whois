@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../plugins/axios'
 
 const email = ref('')
 const password = ref('')
@@ -11,11 +11,10 @@ async function submit() {
   busy.value = true
   error.value = ''
   try {
-    const { data } = await axios.post('/api/login', {
+    const { data } = await api.post('/login', {
       email: email.value, password: password.value
     })
     localStorage.setItem('token', data.token)
-    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
     window.location.href = '/'
   } catch (e) {
     error.value = e?.response?.data?.message || 'Login error'

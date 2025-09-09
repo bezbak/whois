@@ -1,9 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../plugins/axios'
 
-const token = ref(localStorage.getItem('token') || '')
-if (token.value) axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
 
 const raw = ref('')
 const items = ref([])
@@ -12,24 +10,21 @@ const addMsg = ref('')
 const addError = ref('')
 
 function parseDomains(input) {
-  const parts = input.split(/[\n,]+/).map(s => s.trim().toLowerCase()).filter(Boolean)
-  return [...new Set(parts)]
+  return [...new Set(
+    input.split(/[\n,]+/)
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean)
+  )]
 }
 
 async function checkAll() {
-  if (!token.value) {
-    alert('Please login/register first.')
-    return
-  }
-
   const list = parseDomains(raw.value)
   items.value = list.map(d => ({ domain: d, status: 'pending', message:'Checking...', expires_at: null, loading: true, error: null }))
 
-  // параллельно отправляем запросы на сервер: /api/domains/check
   await Promise.allSettled(items.value.map(async (row) => {
     try {
-      const { data } = await axios.post('/api/domains/check', { domain: row.domain })
-      Object.assign(row, data.data, { loading: false }) 
+      const { data } = await api.post('/domains/check', { domain: row.domain })
+      Object.assign(row, data.data, { loading: false })
     } catch (e) {
       row.loading = false
       row.status = 'error'
@@ -38,24 +33,22 @@ async function checkAll() {
   }))
 }
 
-// добавить домен в БД (например, отметить как занятый и выставить expires_at)
 async function addDomain() {
   addMsg.value = ''
   addError.value = ''
   if (!adding.value) return
   try {
     const payload = { name: adding.value }
-    // можно передать expires_at: '2026-12-31' если нужно
-    const { data } = await axios.post('/api/domains', payload)
+    await api.post('/domains', payload)
     addMsg.value = 'Saved'
-    // обновить список
-    const list = await axios.get('/api/domains')
+    const list = await api.get('/domains')
     console.log(list.data)
   } catch (e) {
     addError.value = e?.response?.data?.message || (e?.response?.data?.errors ? JSON.stringify(e.response.data.errors) : 'Error')
   }
 }
 </script>
+
 
 <template>
   <main>

@@ -4,12 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Domain;
+use App\Http\Resources\DomainCheckResource;
 
 class DomainController extends Controller
 {
     public function index()
     {
-        return response()->json(Domain::orderBy('id','desc')->get());
+        return DomainCheckResource::collection(
+        Domain::orderBy('id','desc')->get()->map(function ($d) {
+            return [
+                'domain'     => $d->name,
+                'valid'      => true,
+                'status'     => 'taken',
+                'expires_at' => $d->expires_at?->toDateString(),
+                'message'    => 'From DB',
+            ];
+        })
+    );
     }
 
     public function store(Request $request)

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import api from '../plugins/axios'
 import { useRouter } from 'vue-router' // not using router, just window.location
 
 const name = ref('')
@@ -13,11 +13,10 @@ async function submit() {
   busy.value = true
   error.value = ''
   try {
-    const { data } = await axios.post('/api/register', {
-      name: name.value, email: email.value, password: password.value
+    const { data } = await api.post('/register', {
+      name:name.value, email: email.value, password: password.value
     })
     localStorage.setItem('token', data.token)
-    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
     window.location.href = '/'
   } catch (e) {
     error.value = e?.response?.data?.message || (e?.response?.data?.errors ? JSON.stringify(e.response.data.errors) : 'Error')
